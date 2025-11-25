@@ -1,5 +1,7 @@
+from ast import Continue
 from dataclasses import dataclass
 from typing import Dict, List, Any
+import numpy as np
 
 
 @dataclass
@@ -15,8 +17,21 @@ def build_product_map(products: List[Dict[str, Any]]) -> Dict[str, Product]:
     """
     # TODO: Implement this
     # Hint: loop through products, create Product objects, store by id
-    pass
+    #  products = [
+    #     {"id": "shirt", "price": 20, "inventory": 5},
+    #     {"id": "hat", "price": 10, "inventory": 2},
+    #     {"id": "bag", "price": 50, "inventory": 1},
+    # ]
+    product_map = {} # define dictionary
+    for p in products:
+        product = Product(id=p["id"], price=p["price"], inventory=p["inventory"])
+        product_map[product.id] = product
 
+    # print(product_map)
+        
+
+    # pass
+    return product_map
 
 def parse_operation(op: str) -> List[str]:
     """
@@ -27,6 +42,10 @@ def parse_operation(op: str) -> List[str]:
         "discount 10"    -> ["discount", "10"]
     """
     # TODO: Implement this
+    
+    
+    # op.split()
+    # print(result)
     return op.split()
 
 
@@ -51,6 +70,7 @@ def process_operations(
 
     cart: Dict[str, int] = {}
     discount_multiplier: float = 1.0
+    
 
     for raw_op in operations:
         tokens = parse_operation(raw_op)
@@ -58,47 +78,83 @@ def process_operations(
             continue
 
         action = tokens[0]
-
+        print(action)   
+        
         if action == "add":
+            print('Adding')
             # TODO: handle "add <product_id>"
             # 1. Check product exists
             # 2. Check inventory > 0
             # 3. Update cart and inventory
-            pass
+
+            # product = Product(id=p["id"], price=p["price"], inventory=p["inventory"])
+            # product_map[product.id] = product 
+            #  "cart": {"shirt": 2, "hat": 2, ...},
+            # "inventory": {"shirt": 3, "hat": 3, ...},
+            # "total": 83.52
+            # "add shirt"      -> ["add", "shirt"]
+            # "restock hat 3"  -> ["restock", "hat", "3"]
+            # "discount 10"    -> ["discount", "10"]
+
+            product_id = tokens[1]
+            print(product_id)
+            if len(tokens) < 2:
+                continue
+            if product_map[product_id].inventory > 1 :
+                product_map[product_id].inventory -= 1
+                cart[product_id] = cart.get(product_id,0) +1 
+            
 
         elif action == "remove":
+            print('Removing')
             # TODO: handle "remove <product_id>"
             # 1. Check item in cart and qty > 0
             # 2. Update cart and inventory
-            pass
+            product_id = tokens[1]
+            if len(tokens) < 2:
+                continue
+            product_map[product_id].inventory += 1
+            cart[product_id] = cart.get(product_id) - 1
+            
+
 
         elif action == "discount":
+            
+            if len(tokens) < 2:
+                continue
+            discount_multiplier *= (1 - int(tokens[1])/100)
             # TODO: handle "discount <percentage>"
             # 1. Parse percentage
             # 2. Update discount_multiplier *= (1 - percentage/100)
-            pass
+            
 
         elif action == "restock":
+            print('Restocking')
+            product_id = tokens[1]
+            if len(tokens) < 3:
+                Continue
+            product_map[product_id].inventory += int(tokens[2])    
             # TODO: handle "restock <product_id> <amount>"
             # 1. Parse amount
             # 2. Increase product inventory
-            pass
+            
 
         else:
             # Optional: ignore or raise exception
             # raise ValueError(f"Unknown operation: {raw_op}")
             pass
-
+    
     # After processing all operations, compute final total
     total_before_discount = compute_cart_total(cart, product_map)
     total_after_discount = round(total_before_discount * discount_multiplier, 2)
 
     inventory_snapshot = {pid: p.inventory for pid, p in product_map.items()}
 
+    compute_cart_total(cart, product_map)
     return {
         "cart": cart,
         "inventory": inventory_snapshot,
-        "total": total_after_discount,
+        "total": total_after_discount
     }
 
 
@@ -106,9 +162,17 @@ def compute_cart_total(cart: Dict[str, int], product_map: Dict[str, Product]) ->
     """
     Compute the total price of items in the cart before discounts.
     """
+    print(cart)
+    print(product_map)
+    total = 0 
+    for prodid,qty in  cart.items():
+       total += qty * product_map[prodid].price   
+    return total     
+    
     # TODO: Implement this
     # Hint: sum over (quantity * product.price)
-    pass
+    
+    
 
 
 if __name__ == "__main__":
@@ -132,7 +196,18 @@ if __name__ == "__main__":
         "restock hat 3",
         "add hat",
     ]
-
+    
     product_map = build_product_map(products)
+
+    # compute_cart_total()
+
+    # print(product_map)
     result = process_operations(product_map, operations)
+
     print(result)
+    
+    
+    # X = build_product_map(products)
+    # print(X)
+    # print(parse_operation(operations))  
+
