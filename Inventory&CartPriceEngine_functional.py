@@ -2,6 +2,31 @@ from ast import Continue
 from dataclasses import dataclass
 from typing import Dict, List, Any
 import numpy as np
+import unittest
+
+# products = [
+#         {"id": "shirt", "price": 20, "inventory": 5},
+#         {"id": "hat", "price": 10, "inventory": 2},
+#         {"id": "bag", "price": 50, "inventory": 1},
+#     ]
+
+#     operations = [
+#         "add shirt",
+#         "add shirt",
+#         "add hat",
+#         "add bag",
+#         "remove shirt",
+#         "discount 10",
+#         "add shirt",
+#         "discount 20",
+#         "restock hat 3",
+#         "add hat",
+#     ]
+class unit_test_price_engine(unittest.TestCase):
+    def test_price_engine(self):
+        expected_total = 79.2  #(2*20 + 2*10 + 1*50)*0.9*0.8 = 
+        actual_total = result['total']
+        self.assertEqual(expected_total,actual_total)
 
 
 @dataclass
@@ -22,13 +47,12 @@ def build_product_map(products: List[Dict[str, Any]]) -> Dict[str, Product]:
     #     {"id": "hat", "price": 10, "inventory": 2},
     #     {"id": "bag", "price": 50, "inventory": 1},
     # ]
+
+    # product map is a mapped object, which has product_id as key  and the product dictionnary as value
     product_map = {} # define dictionary
     for p in products:
         product = Product(id=p["id"], price=p["price"], inventory=p["inventory"])
         product_map[product.id] = product
-
-    # print(product_map)
-        
 
     # pass
     return product_map
@@ -42,10 +66,11 @@ def parse_operation(op: str) -> List[str]:
         "discount 10"    -> ["discount", "10"]
     """
     # TODO: Implement this
-    
-    
     # op.split()
     # print(result)
+
+    # takes each element from the Operations and splits them so actual operation, product, quantity etc is seperarted 
+    # result is retruned to the calling function, in this case process_operations()
     return op.split()
 
 
@@ -68,15 +93,16 @@ def process_operations(
     # - discounts: cumulative multiplier (start at 1.0)
     # - product_map: already holds inventory and price
 
+    # goal is to create the cart with product_ids, corresponding quantity, inbventory status and total amount after dsicount etc
+
     cart: Dict[str, int] = {}
     discount_multiplier: float = 1.0
     
-
+    cartops = {}
     for raw_op in operations:
         tokens = parse_operation(raw_op)
         if not tokens:
             continue
-
         action = tokens[0]
         print(action)   
         
@@ -100,9 +126,13 @@ def process_operations(
             print(product_id)
             if len(tokens) < 2:
                 continue
-            if product_map[product_id].inventory > 1 :
+            if product_map[product_id].inventory > 0 :
+                
                 product_map[product_id].inventory -= 1
                 cart[product_id] = cart.get(product_id,0) +1 
+                
+                # cartops['ops'] = action
+
             
 
         elif action == "remove":
@@ -115,7 +145,7 @@ def process_operations(
                 continue
             product_map[product_id].inventory += 1
             cart[product_id] = cart.get(product_id) - 1
-            
+                
 
 
         elif action == "discount":
@@ -154,7 +184,8 @@ def process_operations(
     return {
         "cart": cart,
         "inventory": inventory_snapshot,
-        "total": total_after_discount
+        "total": total_after_discount,
+        "cartops": cartops
     }
 
 
@@ -206,6 +237,9 @@ if __name__ == "__main__":
 
     print(result)
     
+    unittest.main(exit= False)
+
+
     
     # X = build_product_map(products)
     # print(X)
